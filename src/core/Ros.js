@@ -5,6 +5,7 @@
 
 var WebSocket = require('ws');
 var WorkerSocket = require('../util/workerSocket');
+var StompWsAdapter = require('../util/stompWsAdapter');
 var socketAdapter = require('./SocketAdapter.js');
 
 var Service = require('./Service');
@@ -80,6 +81,8 @@ Ros.prototype.connect = function(url) {
     }
   } else if (this.transportLibrary === 'workersocket') {
     this.socket = assign(new WorkerSocket(url), socketAdapter(this));
+  } else if (this.transportLibrary === 'stompjs') {
+    this.socket = assign(new StompWsAdapter(url, this.transportOptions), socketAdapter(this));
   } else {
     throw 'Unknown transportLibrary: ' + this.transportLibrary.toString();
   }
