@@ -1,11 +1,11 @@
 var StompJs = require('@stomp/stompjs');
 
 function stompTopicName(rosTopicName) {
-  var topicName = rosTopicName
+  var topicName = rosTopicName;
   if (topicName.at(0) === '/') {
-    topicName = topicName.substring(1)
+    topicName = topicName.substring(1);
   }
-  return topicName
+  return topicName;
 }
 
 function StompWsAdapter(uri, transportOptions) {
@@ -59,10 +59,10 @@ StompWsAdapter.prototype.handleConnect_ = function (frame) {
 
 StompWsAdapter.prototype.send = function(data) {
   // For published data, switch to the topic name in the message
-  var topicName = this.clientCommandTopic
+  var topicName = this.clientCommandTopic;
   var message = JSON.parse(typeof data === 'string' ? data : data.data);
   if(message.op === 'publish') {
-    topicName = stompTopicName(message.topic)
+    topicName = stompTopicName(message.topic);
   }
   this.stompClient_.publish({
     destination: '/topic/'+topicName, 
