@@ -5362,7 +5362,7 @@ module.exports = Param;
 var WebSocket = require('ws');
 var WorkerSocket = require('../util/workerSocket');
 var StompWsAdapter = require('../util/stompWsAdapter');
-var socketAdapter = require('./SocketAdapter.js');
+var socketAdapter = require('./SocketAdapter');
 
 var Service = require('./Service');
 var ServiceRequest = require('./ServiceRequest');
@@ -5439,6 +5439,8 @@ Ros.prototype.connect = function(url) {
     this.socket = assign(new WorkerSocket(url), socketAdapter(this));
   } else if (this.transportLibrary === 'stompjs') {
     this.socket = assign(new StompWsAdapter(url, this.transportOptions), socketAdapter(this));
+    this.socket.stompClient_.onWebSocketClose = this.socket.onclose;
+    this.socket.stompClient_.onWebSocketError = this.socket.onerror;
   } else {
     throw 'Unknown transportLibrary: ' + this.transportLibrary.toString();
   }
@@ -6058,7 +6060,7 @@ Ros.prototype.getTopicsAndRawTypes = function(callback, failedCallback) {
 
 module.exports = Ros;
 
-},{"../util/stompWsAdapter":49,"../util/workerSocket":50,"./Service":18,"./ServiceRequest":19,"./SocketAdapter.js":21,"eventemitter2":3,"object-assign":4,"ws":46}],18:[function(require,module,exports){
+},{"../util/stompWsAdapter":49,"../util/workerSocket":50,"./Service":18,"./ServiceRequest":19,"./SocketAdapter":21,"eventemitter2":3,"object-assign":4,"ws":46}],18:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -7872,13 +7874,18 @@ module.exports = decompressPng;
 },{"canvas":47}],49:[function(require,module,exports){
 var StompJs = require('@stomp/stompjs');
 
+
 function StompWsAdapter(uri, transportOptions) {
 
+  // Get the topic names from the transportOptions
+  this.subTopic = transportOptions.subTopic || 'sub';
+  this.pubTopic = transportOptions.pubTopic || 'pub';
+  
   var stompConfig_ = {
     // Get the broker conection info from the transportOptions
     connectHeaders: {
-      login: transportOptions.user,
-      passcode: transportOptions.password
+      login: transportOptions.user || 'guest',
+      passcode: transportOptions.password || 'guest'
     },
 
     brokerURL: uri,
@@ -7893,13 +7900,7 @@ function StompWsAdapter(uri, transportOptions) {
     reconnectDelay: 200,
 
     // Connection handler
-    onConnect: this.handleConnect_.bind(this),
-
-    // Disconnection handler
-    onWebSocketClose: this.onclose,
-
-    // Error handler
-    onWebSocketError: this.onerror,
+    onConnect: this.handleConnect_.bind(this)
   };
 
   // Create an instance
@@ -7913,14 +7914,14 @@ StompWsAdapter.prototype.handleConnect_ = function (frame) {
   // Call the onopen method of the SocketAdapter class
   this.onopen();
   // Subscriptions should be done inside onConnect as those need to reinstated when the broker reconnects
-  this.stompClient_.subscribe('/topic/rosmsgs', function (message) {
+  this.stompClient_.subscribe('/topic/'+this.subTopic, function (message) {
     // Call the onmessage method of the SocketAdapter class
     this.onmessage(message.body);
-  });
+  }.bind(this));
 };
 
 StompWsAdapter.prototype.send = function(data) {
-  this.stompClient_.publish({destination: '/topic/rosmsgs', body: data});
+  this.stompClient_.publish({destination: '/topic/'+this.pubTopic, body: data});
 };
 
 StompWsAdapter.prototype.close = function() {
