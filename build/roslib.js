@@ -2170,174 +2170,6 @@ module.exports = __webpack_require__(/*! /home/kdeepak/MyWork/Tech/stomp/stompjs
 });
 
 },{}],2:[function(require,module,exports){
-(function (global){(function (){
-/*! https://mths.be/base64 v1.0.0 by @mathias | MIT license */
-;(function(root) {
-
-	// Detect free variables `exports`.
-	var freeExports = typeof exports == 'object' && exports;
-
-	// Detect free variable `module`.
-	var freeModule = typeof module == 'object' && module &&
-		module.exports == freeExports && module;
-
-	// Detect free variable `global`, from Node.js or Browserified code, and use
-	// it as `root`.
-	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
-		root = freeGlobal;
-	}
-
-	/*--------------------------------------------------------------------------*/
-
-	var InvalidCharacterError = function(message) {
-		this.message = message;
-	};
-	InvalidCharacterError.prototype = new Error;
-	InvalidCharacterError.prototype.name = 'InvalidCharacterError';
-
-	var error = function(message) {
-		// Note: the error messages used throughout this file match those used by
-		// the native `atob`/`btoa` implementation in Chromium.
-		throw new InvalidCharacterError(message);
-	};
-
-	var TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-	// http://whatwg.org/html/common-microsyntaxes.html#space-character
-	var REGEX_SPACE_CHARACTERS = /[\t\n\f\r ]/g;
-
-	// `decode` is designed to be fully compatible with `atob` as described in the
-	// HTML Standard. http://whatwg.org/html/webappapis.html#dom-windowbase64-atob
-	// The optimized base64-decoding algorithm used is based on @atk’s excellent
-	// implementation. https://gist.github.com/atk/1020396
-	var decode = function(input) {
-		input = String(input)
-			.replace(REGEX_SPACE_CHARACTERS, '');
-		var length = input.length;
-		if (length % 4 == 0) {
-			input = input.replace(/==?$/, '');
-			length = input.length;
-		}
-		if (
-			length % 4 == 1 ||
-			// http://whatwg.org/C#alphanumeric-ascii-characters
-			/[^+a-zA-Z0-9/]/.test(input)
-		) {
-			error(
-				'Invalid character: the string to be decoded is not correctly encoded.'
-			);
-		}
-		var bitCounter = 0;
-		var bitStorage;
-		var buffer;
-		var output = '';
-		var position = -1;
-		while (++position < length) {
-			buffer = TABLE.indexOf(input.charAt(position));
-			bitStorage = bitCounter % 4 ? bitStorage * 64 + buffer : buffer;
-			// Unless this is the first of a group of 4 characters…
-			if (bitCounter++ % 4) {
-				// …convert the first 8 bits to a single ASCII character.
-				output += String.fromCharCode(
-					0xFF & bitStorage >> (-2 * bitCounter & 6)
-				);
-			}
-		}
-		return output;
-	};
-
-	// `encode` is designed to be fully compatible with `btoa` as described in the
-	// HTML Standard: http://whatwg.org/html/webappapis.html#dom-windowbase64-btoa
-	var encode = function(input) {
-		input = String(input);
-		if (/[^\0-\xFF]/.test(input)) {
-			// Note: no need to special-case astral symbols here, as surrogates are
-			// matched, and the input is supposed to only contain ASCII anyway.
-			error(
-				'The string to be encoded contains characters outside of the ' +
-				'Latin1 range.'
-			);
-		}
-		var padding = input.length % 3;
-		var output = '';
-		var position = -1;
-		var a;
-		var b;
-		var c;
-		var buffer;
-		// Make sure any padding is handled outside of the loop.
-		var length = input.length - padding;
-
-		while (++position < length) {
-			// Read three bytes, i.e. 24 bits.
-			a = input.charCodeAt(position) << 16;
-			b = input.charCodeAt(++position) << 8;
-			c = input.charCodeAt(++position);
-			buffer = a + b + c;
-			// Turn the 24 bits into four chunks of 6 bits each, and append the
-			// matching character for each of them to the output.
-			output += (
-				TABLE.charAt(buffer >> 18 & 0x3F) +
-				TABLE.charAt(buffer >> 12 & 0x3F) +
-				TABLE.charAt(buffer >> 6 & 0x3F) +
-				TABLE.charAt(buffer & 0x3F)
-			);
-		}
-
-		if (padding == 2) {
-			a = input.charCodeAt(position) << 8;
-			b = input.charCodeAt(++position);
-			buffer = a + b;
-			output += (
-				TABLE.charAt(buffer >> 10) +
-				TABLE.charAt((buffer >> 4) & 0x3F) +
-				TABLE.charAt((buffer << 2) & 0x3F) +
-				'='
-			);
-		} else if (padding == 1) {
-			buffer = input.charCodeAt(position);
-			output += (
-				TABLE.charAt(buffer >> 2) +
-				TABLE.charAt((buffer << 4) & 0x3F) +
-				'=='
-			);
-		}
-
-		return output;
-	};
-
-	var base64 = {
-		'encode': encode,
-		'decode': decode,
-		'version': '1.0.0'
-	};
-
-	// Some AMD build optimizers, like r.js, check for specific condition patterns
-	// like the following:
-	if (
-		typeof define == 'function' &&
-		typeof define.amd == 'object' &&
-		define.amd
-	) {
-		define(function() {
-			return base64;
-		});
-	}	else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js or RingoJS v0.8.0+
-			freeModule.exports = base64;
-		} else { // in Narwhal or RingoJS v0.7.0-
-			for (var key in base64) {
-				base64.hasOwnProperty(key) && (freeExports[key] = base64[key]);
-			}
-		}
-	} else { // in Rhino or a web browser
-		root.base64 = base64;
-	}
-
-}(this));
-
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(require,module,exports){
 /*
  * The MIT License (MIT)
  *
@@ -2745,7 +2577,7 @@ else if (!global.CBOR)
 
 })(this);
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 (function (process,setImmediate){(function (){
 /*!
  * EventEmitter2
@@ -4378,78 +4210,7 @@ else if (!global.CBOR)
 }();
 
 }).call(this)}).call(this,require('_process'),require("timers").setImmediate)
-},{"_process":8,"timers":9}],5:[function(require,module,exports){
-(function (process){(function (){
-let { urlAlphabet } = require('./url-alphabet/index.cjs')
-if (process.env.NODE_ENV !== 'production') {
-  if (
-    typeof navigator !== 'undefined' &&
-    navigator.product === 'ReactNative' &&
-    typeof crypto === 'undefined'
-  ) {
-    throw new Error(
-      'React Native does not have a built-in secure random generator. ' +
-        'If you don’t need unpredictable IDs use `nanoid/non-secure`. ' +
-        'For secure IDs, import `react-native-get-random-values` ' +
-        'before Nano ID.'
-    )
-  }
-  if (typeof msCrypto !== 'undefined' && typeof crypto === 'undefined') {
-    throw new Error(
-      'Import file with `if (!window.crypto) window.crypto = window.msCrypto`' +
-        ' before importing Nano ID to fix IE 11 support'
-    )
-  }
-  if (typeof crypto === 'undefined') {
-    throw new Error(
-      'Your browser does not have secure random generator. ' +
-        'If you don’t need unpredictable IDs, you can use nanoid/non-secure.'
-    )
-  }
-}
-let random = bytes => crypto.getRandomValues(new Uint8Array(bytes))
-let customRandom = (alphabet, size, getRandom) => {
-  let mask = (2 << (Math.log(alphabet.length - 1) / Math.LN2)) - 1
-  let step = -~((1.6 * mask * size) / alphabet.length)
-  return () => {
-    let id = ''
-    while (true) {
-      let bytes = getRandom(step)
-      let j = step
-      while (j--) {
-        id += alphabet[bytes[j] & mask] || ''
-        if (id.length === size) return id
-      }
-    }
-  }
-}
-let customAlphabet = (alphabet, size) => customRandom(alphabet, size, random)
-let nanoid = (size = 21) => {
-  let id = ''
-  let bytes = crypto.getRandomValues(new Uint8Array(size))
-  while (size--) {
-    let byte = bytes[size] & 63
-    if (byte < 36) {
-      id += byte.toString(36)
-    } else if (byte < 62) {
-      id += (byte - 26).toString(36).toUpperCase()
-    } else if (byte < 63) {
-      id += '_'
-    } else {
-      id += '-'
-    }
-  }
-  return id
-}
-module.exports = { nanoid, customAlphabet, customRandom, urlAlphabet, random }
-
-}).call(this)}).call(this,require('_process'))
-},{"./url-alphabet/index.cjs":6,"_process":8}],6:[function(require,module,exports){
-let urlAlphabet =
-  'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
-module.exports = { urlAlphabet }
-
-},{}],7:[function(require,module,exports){
+},{"_process":5,"timers":6}],4:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -4541,7 +4302,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],8:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4727,7 +4488,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],9:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (setImmediate,clearImmediate){(function (){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -4806,7 +4567,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":8,"timers":9}],10:[function(require,module,exports){
+},{"process/browser.js":5,"timers":6}],7:[function(require,module,exports){
 var bundleFn = arguments[3];
 var sources = arguments[4];
 var cache = arguments[5];
@@ -4888,7 +4649,7 @@ module.exports = function (fn, options) {
     return worker;
 };
 
-},{}],11:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Russell Toris - rctoris@wpi.edu
@@ -4918,11 +4679,11 @@ assign(ROSLIB, require('./urdf'));
 
 module.exports = ROSLIB;
 
-},{"./actionlib":17,"./core":26,"./math":31,"./tf":34,"./urdf":46,"object-assign":7}],12:[function(require,module,exports){
+},{"./actionlib":14,"./core":23,"./math":28,"./tf":31,"./urdf":43,"object-assign":4}],9:[function(require,module,exports){
 (function (global){(function (){
 global.ROSLIB = require('./RosLib');
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./RosLib":11}],13:[function(require,module,exports){
+},{"./RosLib":8}],10:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Russell Toris - rctoris@wpi.edu
@@ -5067,7 +4828,7 @@ ActionClient.prototype.dispose = function() {
 
 module.exports = ActionClient;
 
-},{"../core/Message":18,"../core/Topic":25,"eventemitter2":4}],14:[function(require,module,exports){
+},{"../core/Message":15,"../core/Topic":22,"eventemitter2":3}],11:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Justin Young - justin@oodar.com.au
@@ -5156,7 +4917,7 @@ ActionListener.prototype.__proto__ = EventEmitter2.prototype;
 
 module.exports = ActionListener;
 
-},{"../core/Message":18,"../core/Topic":25,"eventemitter2":4}],15:[function(require,module,exports){
+},{"../core/Message":15,"../core/Topic":22,"eventemitter2":3}],12:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Russell Toris - rctoris@wpi.edu
@@ -5246,7 +5007,7 @@ Goal.prototype.cancel = function() {
 };
 
 module.exports = Goal;
-},{"../core/Message":18,"eventemitter2":4}],16:[function(require,module,exports){
+},{"../core/Message":15,"eventemitter2":3}],13:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Laura Lindzey - lindzey@gmail.com
@@ -5476,7 +5237,7 @@ SimpleActionServer.prototype.setPreempted = function() {
 };
 
 module.exports = SimpleActionServer;
-},{"../core/Message":18,"../core/Topic":25,"eventemitter2":4}],17:[function(require,module,exports){
+},{"../core/Message":15,"../core/Topic":22,"eventemitter2":3}],14:[function(require,module,exports){
 var Ros = require('../core/Ros');
 var mixin = require('../mixin');
 
@@ -5489,7 +5250,7 @@ var action = module.exports = {
 
 mixin(Ros, ['ActionClient', 'SimpleActionServer'], action);
 
-},{"../core/Ros":20,"../mixin":32,"./ActionClient":13,"./ActionListener":14,"./Goal":15,"./SimpleActionServer":16}],18:[function(require,module,exports){
+},{"../core/Ros":17,"../mixin":29,"./ActionClient":10,"./ActionListener":11,"./Goal":12,"./SimpleActionServer":13}],15:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -5508,7 +5269,7 @@ function Message(values) {
 }
 
 module.exports = Message;
-},{"object-assign":7}],19:[function(require,module,exports){
+},{"object-assign":4}],16:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -5592,7 +5353,7 @@ Param.prototype.delete = function(callback) {
 };
 
 module.exports = Param;
-},{"./Service":21,"./ServiceRequest":22}],20:[function(require,module,exports){
+},{"./Service":18,"./ServiceRequest":19}],17:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -6299,7 +6060,7 @@ Ros.prototype.getTopicsAndRawTypes = function(callback, failedCallback) {
 
 module.exports = Ros;
 
-},{"../util/stompWsAdapter":52,"../util/workerSocket":53,"./Service":21,"./ServiceRequest":22,"./SocketAdapter":24,"eventemitter2":4,"object-assign":7,"ws":49}],21:[function(require,module,exports){
+},{"../util/stompWsAdapter":49,"../util/workerSocket":50,"./Service":18,"./ServiceRequest":19,"./SocketAdapter":21,"eventemitter2":3,"object-assign":4,"ws":46}],18:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -6424,7 +6185,7 @@ Service.prototype._serviceResponse = function(rosbridgeRequest) {
 
 module.exports = Service;
 
-},{"./ServiceRequest":22,"./ServiceResponse":23,"eventemitter2":4}],22:[function(require,module,exports){
+},{"./ServiceRequest":19,"./ServiceResponse":20,"eventemitter2":3}],19:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - balexander@willowgarage.com
@@ -6443,7 +6204,7 @@ function ServiceRequest(values) {
 }
 
 module.exports = ServiceRequest;
-},{"object-assign":7}],23:[function(require,module,exports){
+},{"object-assign":4}],20:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - balexander@willowgarage.com
@@ -6462,7 +6223,7 @@ function ServiceResponse(values) {
 }
 
 module.exports = ServiceResponse;
-},{"object-assign":7}],24:[function(require,module,exports){
+},{"object-assign":4}],21:[function(require,module,exports){
 /**
  * Socket event handling utilities for handling events on either
  * WebSocket and TCP sockets
@@ -6595,7 +6356,7 @@ function SocketAdapter(client) {
 
 module.exports = SocketAdapter;
 
-},{"../util/cborTypedArrayTags":47,"../util/decompressPng":51,"cbor-js":3}],25:[function(require,module,exports){
+},{"../util/cborTypedArrayTags":44,"../util/decompressPng":48,"cbor-js":2}],22:[function(require,module,exports){
 /**
  * @fileoverview
  * @author Brandon Alexander - baalexander@gmail.com
@@ -6670,7 +6431,7 @@ function Topic(options) {
     };
   }
   else {
-    this.callForSubscribeAndAdvertise = this.ros.callOnConnection.bind(this.ros);
+    this.callForSubscribeAndAdvertise = this.ros.callOnConnection;
   }
 
   this._messageCallback = function(data) {
@@ -6805,7 +6566,7 @@ Topic.prototype.publish = function(message) {
 
 module.exports = Topic;
 
-},{"./Message":18,"eventemitter2":4}],26:[function(require,module,exports){
+},{"./Message":15,"eventemitter2":3}],23:[function(require,module,exports){
 var mixin = require('../mixin');
 
 var core = module.exports = {
@@ -6820,7 +6581,7 @@ var core = module.exports = {
 
 mixin(core.Ros, ['Param', 'Service', 'Topic'], core);
 
-},{"../mixin":32,"./Message":18,"./Param":19,"./Ros":20,"./Service":21,"./ServiceRequest":22,"./ServiceResponse":23,"./Topic":25}],27:[function(require,module,exports){
+},{"../mixin":29,"./Message":15,"./Param":16,"./Ros":17,"./Service":18,"./ServiceRequest":19,"./ServiceResponse":20,"./Topic":22}],24:[function(require,module,exports){
 /**
  * @fileoverview
  * @author David Gossow - dgossow@willowgarage.com
@@ -6893,7 +6654,7 @@ Pose.prototype.getInverse = function() {
 };
 
 module.exports = Pose;
-},{"./Quaternion":28,"./Vector3":30}],28:[function(require,module,exports){
+},{"./Quaternion":25,"./Vector3":27}],25:[function(require,module,exports){
 /**
  * @fileoverview
  * @author David Gossow - dgossow@willowgarage.com
@@ -6987,7 +6748,7 @@ Quaternion.prototype.clone = function() {
 
 module.exports = Quaternion;
 
-},{}],29:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /**
  * @fileoverview
  * @author David Gossow - dgossow@willowgarage.com
@@ -7021,7 +6782,7 @@ Transform.prototype.clone = function() {
 };
 
 module.exports = Transform;
-},{"./Quaternion":28,"./Vector3":30}],30:[function(require,module,exports){
+},{"./Quaternion":25,"./Vector3":27}],27:[function(require,module,exports){
 /**
  * @fileoverview
  * @author David Gossow - dgossow@willowgarage.com
@@ -7090,7 +6851,7 @@ Vector3.prototype.clone = function() {
 };
 
 module.exports = Vector3;
-},{}],31:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = {
     Pose: require('./Pose'),
     Quaternion: require('./Quaternion'),
@@ -7098,7 +6859,7 @@ module.exports = {
     Vector3: require('./Vector3')
 };
 
-},{"./Pose":27,"./Quaternion":28,"./Transform":29,"./Vector3":30}],32:[function(require,module,exports){
+},{"./Pose":24,"./Quaternion":25,"./Transform":26,"./Vector3":27}],29:[function(require,module,exports){
 /**
  * Mixin a feature to the core/Ros prototype.
  * For example, mixin(Ros, ['Topic'], {Topic: <Topic>})
@@ -7117,7 +6878,7 @@ module.exports = function(Ros, classes, features) {
     });
 };
 
-},{}],33:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
  * @fileoverview
  * @author David Gossow - dgossow@willowgarage.com
@@ -7352,7 +7113,7 @@ TFClient.prototype.dispose = function() {
 
 module.exports = TFClient;
 
-},{"../actionlib/ActionClient":13,"../actionlib/Goal":15,"../core/Service.js":21,"../core/ServiceRequest.js":22,"../core/Topic.js":25,"../math/Transform":29}],34:[function(require,module,exports){
+},{"../actionlib/ActionClient":10,"../actionlib/Goal":12,"../core/Service.js":18,"../core/ServiceRequest.js":19,"../core/Topic.js":22,"../math/Transform":26}],31:[function(require,module,exports){
 var Ros = require('../core/Ros');
 var mixin = require('../mixin');
 
@@ -7361,7 +7122,7 @@ var tf = module.exports = {
 };
 
 mixin(Ros, ['TFClient'], tf);
-},{"../core/Ros":20,"../mixin":32,"./TFClient":33}],35:[function(require,module,exports){
+},{"../core/Ros":17,"../mixin":29,"./TFClient":30}],32:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7392,7 +7153,7 @@ function UrdfBox(options) {
 }
 
 module.exports = UrdfBox;
-},{"../math/Vector3":30,"./UrdfTypes":44}],36:[function(require,module,exports){
+},{"../math/Vector3":27,"./UrdfTypes":41}],33:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7416,7 +7177,7 @@ function UrdfColor(options) {
 }
 
 module.exports = UrdfColor;
-},{}],37:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7439,7 +7200,7 @@ function UrdfCylinder(options) {
 }
 
 module.exports = UrdfCylinder;
-},{"./UrdfTypes":44}],38:[function(require,module,exports){
+},{"./UrdfTypes":41}],35:[function(require,module,exports){
 /**
  * @fileOverview
  * @author David V. Lu!!  davidvlu@gmail.com
@@ -7532,7 +7293,7 @@ function UrdfJoint(options) {
 
 module.exports = UrdfJoint;
 
-},{"../math/Pose":27,"../math/Quaternion":28,"../math/Vector3":30}],39:[function(require,module,exports){
+},{"../math/Pose":24,"../math/Quaternion":25,"../math/Vector3":27}],36:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7561,7 +7322,7 @@ function UrdfLink(options) {
 }
 
 module.exports = UrdfLink;
-},{"./UrdfVisual":45}],40:[function(require,module,exports){
+},{"./UrdfVisual":42}],37:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7611,7 +7372,7 @@ UrdfMaterial.prototype.assign = function(obj) {
 
 module.exports = UrdfMaterial;
 
-},{"./UrdfColor":36,"object-assign":7}],41:[function(require,module,exports){
+},{"./UrdfColor":33,"object-assign":4}],38:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7648,7 +7409,7 @@ function UrdfMesh(options) {
 }
 
 module.exports = UrdfMesh;
-},{"../math/Vector3":30,"./UrdfTypes":44}],42:[function(require,module,exports){
+},{"../math/Vector3":27,"./UrdfTypes":41}],39:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7745,7 +7506,7 @@ function UrdfModel(options) {
 
 module.exports = UrdfModel;
 
-},{"./UrdfJoint":38,"./UrdfLink":39,"./UrdfMaterial":40,"@xmldom/xmldom":48}],43:[function(require,module,exports){
+},{"./UrdfJoint":35,"./UrdfLink":36,"./UrdfMaterial":37,"@xmldom/xmldom":45}],40:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7767,7 +7528,7 @@ function UrdfSphere(options) {
 }
 
 module.exports = UrdfSphere;
-},{"./UrdfTypes":44}],44:[function(require,module,exports){
+},{"./UrdfTypes":41}],41:[function(require,module,exports){
 module.exports = {
 	URDF_SPHERE : 0,
 	URDF_BOX : 1,
@@ -7775,7 +7536,7 @@ module.exports = {
 	URDF_MESH : 3
 };
 
-},{}],45:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /**
  * @fileOverview 
  * @author Benjamin Pitzer - ben.pitzer@gmail.com
@@ -7906,7 +7667,7 @@ function UrdfVisual(options) {
 }
 
 module.exports = UrdfVisual;
-},{"../math/Pose":27,"../math/Quaternion":28,"../math/Vector3":30,"./UrdfBox":35,"./UrdfCylinder":37,"./UrdfMaterial":40,"./UrdfMesh":41,"./UrdfSphere":43}],46:[function(require,module,exports){
+},{"../math/Pose":24,"../math/Quaternion":25,"../math/Vector3":27,"./UrdfBox":32,"./UrdfCylinder":34,"./UrdfMaterial":37,"./UrdfMesh":38,"./UrdfSphere":40}],43:[function(require,module,exports){
 module.exports = require('object-assign')({
     UrdfBox: require('./UrdfBox'),
     UrdfColor: require('./UrdfColor'),
@@ -7919,7 +7680,7 @@ module.exports = require('object-assign')({
     UrdfVisual: require('./UrdfVisual')
 }, require('./UrdfTypes'));
 
-},{"./UrdfBox":35,"./UrdfColor":36,"./UrdfCylinder":37,"./UrdfLink":39,"./UrdfMaterial":40,"./UrdfMesh":41,"./UrdfModel":42,"./UrdfSphere":43,"./UrdfTypes":44,"./UrdfVisual":45,"object-assign":7}],47:[function(require,module,exports){
+},{"./UrdfBox":32,"./UrdfColor":33,"./UrdfCylinder":34,"./UrdfLink":36,"./UrdfMaterial":37,"./UrdfMesh":38,"./UrdfModel":39,"./UrdfSphere":40,"./UrdfTypes":41,"./UrdfVisual":42,"object-assign":4}],44:[function(require,module,exports){
 'use strict';
 
 var UPPER32 = Math.pow(2, 32);
@@ -8039,20 +7800,20 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = cborTypedArrayTagger;
 }
 
-},{}],48:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 exports.DOMImplementation = window.DOMImplementation;
 exports.XMLSerializer = window.XMLSerializer;
 exports.DOMParser = window.DOMParser;
 
-},{}],49:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = typeof window !== 'undefined' ? window.WebSocket : WebSocket;
 
-},{}],50:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /* global document */
 module.exports = function Canvas() {
 	return document.createElement('canvas');
 };
-},{}],51:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /**
  * @fileOverview
  * @author Graeme Yeates - github.com/megawac
@@ -8110,37 +7871,28 @@ function decompressPng(data, callback) {
 
 module.exports = decompressPng;
 
-},{"canvas":50}],52:[function(require,module,exports){
+},{"canvas":47}],49:[function(require,module,exports){
 var StompJs = require('@stomp/stompjs');
-var { nanoid } = require('nanoid');
-var base64 = require('base-64');
 
 function stompTopicName(rosTopicName) {
   var topicName = rosTopicName;
-  // Remove first slash if present
   if (topicName.at(0) === '/') {
     topicName = topicName.substring(1);
   }
-  // Change all subsequent slashes for points
-  return topicName.replace(/\//g, '.');
+  return topicName;
 }
 
 function StompWsAdapter(uri, transportOptions) {
 
-  // Get the transportOptions
-  this.user = transportOptions.user || 'guest';
-  this.password = transportOptions.password || 'guest';
-  this.serverCommandDestination = transportOptions.serverCommandDestination || '/topic/server-command';
-  this.clientCommandDestination = transportOptions.clientCommandDestination || '/topic/client-command';
-  this.reconnectDelay = transportOptions.reconnectDelay;
-  this.useHistory = transportOptions.useHistory || true;
-  this.historyLength = transportOptions.historyLength || 100;
+  // Get the topic names from the transportOptions
+  this.serverCommandTopic = transportOptions.subTopic || 'server-command';
+  this.clientCommandTopic = transportOptions.clientCommandTopic || 'client-command';
   
   var stompConfig_ = {
     // Get the broker conection info from the transportOptions
     connectHeaders: {
-      login: this.user,
-      passcode: this.password
+      login: transportOptions.user || 'guest',
+      passcode: transportOptions.password || 'guest'
     },
 
     brokerURL: uri,
@@ -8151,8 +7903,8 @@ function StompWsAdapter(uri, transportOptions) {
       console.log('STOMP: ' + str);
     },
 
-    // If disconnected, it will retry after the time (in ms) specified in the transportOptions
-    reconnectDelay: this.reconnectDelay,
+    // If disconnected, it will retry after 200ms
+    reconnectDelay: 200,
 
     // Heartbeat
     heartbeatIncoming: transportOptions.heartbeatConsumer || 0,
@@ -8173,78 +7925,38 @@ StompWsAdapter.prototype.handleConnect_ = function (frame) {
   // Call the onopen method of the SocketAdapter class
   this.onopen();
   // Subscriptions should be done inside onConnect as those need to reinstated when the broker reconnects
-  this.stompClient_.subscribe(this.serverCommandDestination, function (message) {
+  this.stompClient_.subscribe('/topic/'+this.serverCommandTopic, function (message) {
     // Call the onmessage method of the SocketAdapter class
     this.onmessage(message.body);
   }.bind(this));
 };
 
-StompWsAdapter.prototype.send = async function(data) {
+StompWsAdapter.prototype.send = function(data) {
+  // For published data, switch to the topic name in the message
+  var topicName = this.clientCommandTopic;
   var message = JSON.parse(typeof data === 'string' ? data : data.data);
-  var topicName = stompTopicName(message.topic);
-  var headers = {};
-  // If the command message is subscribe
+  if(message.op === 'publish') {
+    topicName = stompTopicName(message.topic);
+  }
+  this.stompClient_.publish({
+    destination: '/topic/'+topicName, 
+    body: data
+  });
+  // If the command message was subscribe, create a listener to the topic
   if(message.op === 'subscribe') {
-    // If using history, create a new exchange in the server
-    if (this.useHistory) {
-      var body = {
-        type:"x-recent-history",
-        auto_delete: true,
-        durable: false,
-        arguments: {
-          "x-recent-history-length": this.historyLength
-        }
-      }
-      var response = await fetch(`http://localhost:15672/api/exchanges/%2F/${topicName}`, {
-        method: 'PUT',
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Basic ' + base64.encode(this.user + ":" + this.password)
-        },
-      });
-      if (response.status >= 200 && response.status < 300) {
-        console.log('New exchange created for topic %s', message.topic)
-      } else {
-        var response_data = await response.json();
-        console.log(response_data.message);
-        setTimeout(this.send.bind(this, data), this.reconnectDelay); // will try to resend the message after the timeout
-      }
-    }
-    // Add a receipt header
-    var receiptId = nanoid();
-    headers.receipt = receiptId;
-    // When the receipt has been acknowledged, create a STOMP subscription to the proper destination
-    this.stompClient_.watchForReceipt(receiptId, () => {
-      let prefix = '/topic/'
-      // Change the destination to an exchange if using history for subscriptions
-      if(this.useHistory) {
-        prefix = '/exchange/'
-      }
-      this.stompClient_.subscribe(
-        prefix + topicName, 
-        function (message) {
-          // Call the onmessage method of the SocketAdapter class
-          this.onmessage(message.body);
-        }.bind(this),
-        { id: topicName }
-      );
-    })
+    this.stompClient_.subscribe(
+      '/topic/'+stompTopicName(message.topic), 
+      function (message) {
+        // Call the onmessage method of the SocketAdapter class
+        this.onmessage(message.body);
+      }.bind(this),
+      { id: stompTopicName(message.topic) }
+    );
   }
   // If the command message was unsubscribe, delete the listener to the topic
   if(message.op === 'unsubscribe') {
-    this.stompClient_.unsubscribe(topicName);
+    this.stompClient_.unsubscribe( stompTopicName(message.topic) );
   }
-  // For published data, switch to the topic name in the message
-  var destination = this.clientCommandDestination;
-  if(message.op === 'publish') {
-    destination = '/topic/' + topicName;
-  }
-  this.stompClient_.publish({
-    destination: destination, 
-    body: data,
-    headers: headers
-  });
 };
 
 StompWsAdapter.prototype.close = function() {
@@ -8253,7 +7965,7 @@ StompWsAdapter.prototype.close = function() {
 
 module.exports = StompWsAdapter;
 
-},{"@stomp/stompjs":1,"base-64":2,"nanoid":5}],53:[function(require,module,exports){
+},{"@stomp/stompjs":1}],50:[function(require,module,exports){
 var work = require('webworkify');
 var workerSocketImpl = require('./workerSocketImpl');
 
@@ -8299,7 +8011,7 @@ WorkerSocket.prototype.close = function() {
 
 module.exports = WorkerSocket;
 
-},{"./workerSocketImpl":54,"webworkify":10}],54:[function(require,module,exports){
+},{"./workerSocketImpl":51,"webworkify":7}],51:[function(require,module,exports){
 var WebSocket = WebSocket || require('ws');
 
 module.exports = function(self) {
@@ -8349,4 +8061,4 @@ module.exports = function(self) {
   });
 };
 
-},{"ws":49}]},{},[12]);
+},{"ws":46}]},{},[9]);
