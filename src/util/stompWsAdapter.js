@@ -1,5 +1,6 @@
 var StompJs = require('@stomp/stompjs');
 var { nanoid } = require('nanoid');
+const axios = require('axios');
 var base64 = require('base-64');
 
 function stompTopicName(rosTopicName) {
@@ -74,28 +75,31 @@ StompWsAdapter.prototype.send = async function(data) {
   if(message.op === 'subscribe') {
     // If using history, create a new exchange in the server
     if (this.useHistory) {
+      var config ={
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + base64.encode(this.user + ':' + this.password)
+        }
+      };
       var body = {
-        type:"x-recent-history",
+        type:'x-recent-history',
         auto_delete: true,
         durable: false,
         arguments: {
-          "x-recent-history-length": this.historyLength
+          'x-recent-history-length': this.historyLength
         }
-      }
-      var response = await fetch(`http://localhost:15672/api/exchanges/%2F/${topicName}`, {
-        method: 'PUT',
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Basic ' + base64.encode(this.user + ":" + this.password)
-        },
-      });
-      if (response.status >= 200 && response.status < 300) {
-        console.log('New exchange created for topic %s', message.topic)
-      } else {
-        var response_data = await response.json();
-        console.log(response_data.message);
+      };
+      try {
+        var response = await axios.put(`http://localhost:15672/api/exchanges/%2F/${topicName}`, body, config);
+      
+        if (response.status >= 200 && response.status < 300) {
+          console.log('New exchange created for topic %s', message.topic);
+        }
+      } catch (error) {
+        console.log(error);
+        console.log('Will try to re-send in %s milliseconds', this.reconnectDelay);
         setTimeout(this.send.bind(this, data), this.reconnectDelay); // will try to resend the message after the timeout
+        return;
       }
     }
     // Add a receipt header
@@ -103,10 +107,10 @@ StompWsAdapter.prototype.send = async function(data) {
     headers.receipt = receiptId;
     // When the receipt has been acknowledged, create a STOMP subscription to the proper destination
     this.stompClient_.watchForReceipt(receiptId, () => {
-      let prefix = '/topic/'
+      var prefix = '/topic/';
       // Change the destination to an exchange if using history for subscriptions
       if(this.useHistory) {
-        prefix = '/exchange/'
+        prefix = '/exchange/';
       }
       this.stompClient_.subscribe(
         prefix + topicName, 
@@ -116,7 +120,7 @@ StompWsAdapter.prototype.send = async function(data) {
         }.bind(this),
         { id: topicName }
       );
-    })
+    });
   }
   // If the command message was unsubscribe, delete the listener to the topic
   if(message.op === 'unsubscribe') {

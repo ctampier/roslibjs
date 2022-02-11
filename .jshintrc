@@ -22,6 +22,7 @@
   "trailing": true,
   "quotmark": "single",
   "proto": true,
-  "laxbreak": true
+  "laxbreak": true,
+  "esversion": 8
 }
 
