@@ -1,24 +1,33 @@
 var StompJs = require('@stomp/stompjs');
+var { nanoid } = require('nanoid');
+var base64 = require('base-64');
 
 function stompTopicName(rosTopicName) {
   var topicName = rosTopicName;
+  // Remove first slash if present
   if (topicName.at(0) === '/') {
     topicName = topicName.substring(1);
   }
-  return topicName;
+  // Change all subsequent slashes for points
+  return topicName.replace(/\//g, '.');
 }
 
 function StompWsAdapter(uri, transportOptions) {
 
-  // Get the topic names from the transportOptions
-  this.serverCommandTopic = transportOptions.subTopic || 'server-command';
-  this.clientCommandTopic = transportOptions.clientCommandTopic || 'client-command';
+  // Get the transportOptions
+  this.user = transportOptions.user || 'guest';
+  this.password = transportOptions.password || 'guest';
+  this.serverCommandDestination = transportOptions.serverCommandDestination || '/topic/server-command';
+  this.clientCommandDestination = transportOptions.clientCommandDestination || '/topic/client-command';
+  this.reconnectDelay = transportOptions.reconnectDelay;
+  this.useHistory = transportOptions.useHistory || true;
+  this.historyLength = transportOptions.historyLength || 100;
   
   var stompConfig_ = {
     // Get the broker conection info from the transportOptions
     connectHeaders: {
-      login: transportOptions.user || 'guest',
-      passcode: transportOptions.password || 'guest'
+      login: this.user,
+      passcode: this.password
     },
 
     brokerURL: uri,
@@ -29,8 +38,8 @@ function StompWsAdapter(uri, transportOptions) {
       console.log('STOMP: ' + str);
     },
 
-    // If disconnected, it will retry after 200ms
-    reconnectDelay: 200,
+    // If disconnected, it will retry after the time (in ms) specified in the transportOptions
+    reconnectDelay: this.reconnectDelay,
 
     // Heartbeat
     heartbeatIncoming: transportOptions.heartbeatConsumer || 0,
@@ -51,38 +60,78 @@ StompWsAdapter.prototype.handleConnect_ = function (frame) {
   // Call the onopen method of the SocketAdapter class
   this.onopen();
   // Subscriptions should be done inside onConnect as those need to reinstated when the broker reconnects
-  this.stompClient_.subscribe('/topic/'+this.serverCommandTopic, function (message) {
+  this.stompClient_.subscribe(this.serverCommandDestination, function (message) {
     // Call the onmessage method of the SocketAdapter class
     this.onmessage(message.body);
   }.bind(this));
 };
 
-StompWsAdapter.prototype.send = function(data) {
-  // For published data, switch to the topic name in the message
-  var topicName = this.clientCommandTopic;
+StompWsAdapter.prototype.send = async function(data) {
   var message = JSON.parse(typeof data === 'string' ? data : data.data);
-  if(message.op === 'publish') {
-    topicName = stompTopicName(message.topic);
-  }
-  this.stompClient_.publish({
-    destination: '/topic/'+topicName, 
-    body: data
-  });
-  // If the command message was subscribe, create a listener to the topic
+  var topicName = stompTopicName(message.topic);
+  var headers = {};
+  // If the command message is subscribe
   if(message.op === 'subscribe') {
-    this.stompClient_.subscribe(
-      '/topic/'+stompTopicName(message.topic), 
-      function (message) {
-        // Call the onmessage method of the SocketAdapter class
-        this.onmessage(message.body);
-      }.bind(this),
-      { id: stompTopicName(message.topic) }
-    );
+    // If using history, create a new exchange in the server
+    if (this.useHistory) {
+      var body = {
+        type:"x-recent-history",
+        auto_delete: true,
+        durable: false,
+        arguments: {
+          "x-recent-history-length": this.historyLength
+        }
+      }
+      var response = await fetch(`http://localhost:15672/api/exchanges/%2F/${topicName}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Basic ' + base64.encode(this.user + ":" + this.password)
+        },
+      });
+      if (response.status >= 200 && response.status < 300) {
+        console.log('New exchange created for topic %s', message.topic)
+      } else {
+        var response_data = await response.json();
+        console.log(response_data.message);
+        setTimeout(this.send.bind(this, data), this.reconnectDelay); // will try to resend the message after the timeout
+      }
+    }
+    // Add a receipt header
+    var receiptId = nanoid();
+    headers.receipt = receiptId;
+    // When the receipt has been acknowledged, create a STOMP subscription to the proper destination
+    this.stompClient_.watchForReceipt(receiptId, () => {
+      let prefix = '/topic/'
+      // Change the destination to an exchange if using history for subscriptions
+      if(this.useHistory) {
+        prefix = '/exchange/'
+      }
+      this.stompClient_.subscribe(
+        prefix + topicName, 
+        function (message) {
+          // Call the onmessage method of the SocketAdapter class
+          this.onmessage(message.body);
+        }.bind(this),
+        { id: topicName }
+      );
+    })
   }
   // If the command message was unsubscribe, delete the listener to the topic
   if(message.op === 'unsubscribe') {
-    this.stompClient_.unsubscribe( stompTopicName(message.topic) );
+    this.stompClient_.unsubscribe(topicName);
   }
+  // For published data, switch to the topic name in the message
+  var destination = this.clientCommandDestination;
+  if(message.op === 'publish') {
+    destination = '/topic/' + topicName;
+  }
+  this.stompClient_.publish({
+    destination: destination, 
+    body: data,
+    headers: headers
+  });
 };
 
 StompWsAdapter.prototype.close = function() {

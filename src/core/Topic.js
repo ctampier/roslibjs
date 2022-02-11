@@ -72,7 +72,7 @@ function Topic(options) {
     };
   }
   else {
-    this.callForSubscribeAndAdvertise = this.ros.callOnConnection;
+    this.callForSubscribeAndAdvertise = this.ros.callOnConnection.bind(this.ros);
   }
 
   this._messageCallback = function(data) {
