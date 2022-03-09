@@ -21,7 +21,7 @@ function StompWsAdapter(uri, transportOptions) {
   this.serverCommandDestination = transportOptions.serverCommandDestination || '/topic/server-command';
   this.clientCommandDestination = transportOptions.clientCommandDestination || '/topic/client-command';
   this.reconnectDelay = transportOptions.reconnectDelay;
-  this.useHistory = transportOptions.useHistory || true;
+  this.useHistory = transportOptions.useHistory === false ? false : true;
   this.historyLength = transportOptions.historyLength || 100;
   
   var stompConfig_ = {
@@ -73,47 +73,43 @@ StompWsAdapter.prototype.send = async function(data) {
   var headers = {};
   // If the command message is subscribe
   if(message.op === 'subscribe') {
-    // If using history, create a new exchange in the server
-    if (this.useHistory) {
-      var config ={
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Basic ' + base64.encode(this.user + ':' + this.password)
-        }
-      };
-      var body = {
-        type:'x-recent-history',
-        auto_delete: true,
-        durable: false,
-        arguments: {
-          'x-recent-history-length': this.historyLength
-        }
-      };
-      try {
-        var response = await axios.put(`http://localhost:15672/api/exchanges/%2F/${topicName}`, body, config);
-      
-        if (response.status >= 200 && response.status < 300) {
-          console.log('New exchange created for topic %s', message.topic);
-        }
-      } catch (error) {
-        console.log(error);
-        console.log('Will try to re-send in %s milliseconds', this.reconnectDelay);
-        setTimeout(this.send.bind(this, data), this.reconnectDelay); // will try to resend the message after the timeout
-        return;
+    // Create a new exchange in the server
+    var config ={
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + base64.encode(this.user + ':' + this.password)
       }
+    };
+    // Use a topic exchange by default
+    var body = {
+      type: 'topic',
+      auto_delete: true,
+      durable: false
+    };
+    // Use an x-recent-history exchange if using history
+    if (this.useHistory) {
+      body.type = 'x-recent-history';
+      body.arguments = { 'x-recent-history-length': this.historyLength };
+    }
+    try {
+      var response = await axios.put(`http://localhost:15672/api/exchanges/%2F/${topicName}`, body, config);
+    
+      if (response.status >= 200 && response.status < 300) {
+        console.log('New exchange created for topic %s', message.topic);
+      }
+    } catch (error) {
+      console.log(error);
+      console.log('Will try to re-send in %s milliseconds', this.reconnectDelay);
+      setTimeout(this.send.bind(this, data), this.reconnectDelay); // will try to resend the message after the timeout
+      return;
     }
     // Add a receipt header
     var receiptId = nanoid();
     headers.receipt = receiptId;
     // When the receipt has been acknowledged, create a STOMP subscription to the proper destination
     this.stompClient_.watchForReceipt(receiptId, () => {
-      var prefix = '/topic/';
-      // Change the destination to an exchange if using history for subscriptions
-      if(this.useHistory) {
-        prefix = '/exchange/';
-      }
       this.stompClient_.subscribe(
-        prefix + topicName, 
+        '/exchange/' + topicName, 
         function (message) {
           // Call the onmessage method of the SocketAdapter class
           this.onmessage(message.body);
@@ -129,8 +125,9 @@ StompWsAdapter.prototype.send = async function(data) {
   // For published data, switch to the topic name in the message
   var destination = this.clientCommandDestination;
   if(message.op === 'publish') {
-    destination = '/topic/' + topicName;
+    destination = '/exchange/' + topicName;
   }
+  // Finally, send the message
   this.stompClient_.publish({
     destination: destination, 
     body: data,
