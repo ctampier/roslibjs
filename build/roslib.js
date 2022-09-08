@@ -8901,32 +8901,56 @@ exports.as_promise = as_promise;
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./log.js":14,"when":189}],28:[function(require,module,exports){
 module.exports={
-  "name": "autobahn",
-  "version": "20.9.2",
-  "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
-  "main": "index.js",
-  "files": [
-    "index.js",
-    "/lib"
+  "_args": [
+    [
+      "autobahn@20.9.2",
+      "/root/roslibjs"
+    ]
   ],
-  "scripts": {
-    "test": "nodeunit test/test.js"
+  "_from": "autobahn@20.9.2",
+  "_id": "autobahn@20.9.2",
+  "_inBundle": false,
+  "_integrity": "sha512-Xas7mHujzRJe1p9RWPS3QTrwcXF5S9B9oT26cbzQKnE7qsvMOvmNnRZ6SWYpMdgDgJDCQ+kvpvQE8pRA/kWTPw==",
+  "_location": "/autobahn",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "autobahn@20.9.2",
+    "name": "autobahn",
+    "escapedName": "autobahn",
+    "rawSpec": "20.9.2",
+    "saveSpec": null,
+    "fetchSpec": "20.9.2"
   },
-  "engines": {
-    "node": ">= 7.10.1"
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/autobahn/-/autobahn-20.9.2.tgz",
+  "_spec": "20.9.2",
+  "_where": "/root/roslibjs",
+  "author": {
+    "name": "Crossbar.io Technologies GmbH"
+  },
+  "browser": {
+    "cbor": false,
+    "ws": false,
+    "./lib/transport/rawsocket.js": false
+  },
+  "bugs": {
+    "url": "https://github.com/crossbario/autobahn-js/issues"
   },
   "dependencies": {
+    "bufferutil": ">= 1.2.1",
     "cbor": ">= 3.0.0",
     "crypto-js": ">=3.1.8",
     "msgpack5": ">= 3.6.0",
     "tweetnacl": ">= 0.14.3",
+    "utf-8-validate": ">= 1.2.1",
+    "when": ">= 3.7.7",
     "ws": ">= 1.1.4"
   },
-  "optionalDependencies": {
-    "bufferutil": ">= 1.2.1",
-    "utf-8-validate": ">= 1.2.1",
-    "when": ">= 3.7.7"
-  },
+  "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
   "devDependencies": {
     "browserify": ">= 13.1.1",
     "deep-equal": ">= 1.0.1",
@@ -8934,15 +8958,14 @@ module.exports={
     "nodeunit": ">= 0.11.3",
     "random-bytes-seed": ">=1.0.3"
   },
-  "browser": {
-    "cbor": false,
-    "ws": false,
-    "./lib/transport/rawsocket.js": false
+  "engines": {
+    "node": ">= 7.10.1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/crossbario/autobahn-js.git"
-  },
+  "files": [
+    "index.js",
+    "/lib"
+  ],
+  "homepage": "https://github.com/crossbario/autobahn-js#readme",
   "keywords": [
     "WAMP",
     "WebSocket",
@@ -8957,8 +8980,22 @@ module.exports={
     "data-service",
     "data-monetization"
   ],
-  "author": "Crossbar.io Technologies GmbH",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "index.js",
+  "name": "autobahn",
+  "optionalDependencies": {
+    "bufferutil": ">= 1.2.1",
+    "utf-8-validate": ">= 1.2.1",
+    "when": ">= 3.7.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/crossbario/autobahn-js.git"
+  },
+  "scripts": {
+    "test": "nodeunit test/test.js"
+  },
+  "version": "20.9.2"
 }
 
 },{}],29:[function(require,module,exports){
