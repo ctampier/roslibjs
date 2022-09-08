@@ -10,7 +10,7 @@ var pngparse = require('pngparse');
 /**
  * If a message was compressed as a PNG image (a compression hack since
  * gzipping over WebSockets * is not supported yet), this function decodes
- * the "image" as a Base64 string.
+ * the 'image' as a Base64 string.
  *
  * @private
  * @param data - object containing the PNG data.

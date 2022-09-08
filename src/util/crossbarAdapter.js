@@ -1,21 +1,21 @@
-var autobahn = require("autobahn");
+var autobahn = require('autobahn');
 
 function crossbarTopicName(rosTopicName) {
   var topicName = rosTopicName;
   // Remove first slash if present
-  if (topicName.at(0) === "/") {
+  if (topicName.at(0) === '/') {
     topicName = topicName.substring(1);
   }
   // Change all subsequent slashes for points
-  return topicName.replace(/\//g, ".");
+  return topicName.replace(/\//g, '.');
 }
 
 function CrossbarAdapter(url, transportOptions) {
   // Get the transportOptions
   this.serverCommandDestination =
-    transportOptions.serverCommandDestination || "server_command";
+    transportOptions.serverCommandDestination || 'server_command';
   this.clientCommandDestination =
-    transportOptions.clientCommandDestination || "client_command";
+    transportOptions.clientCommandDestination || 'client_command';
 
   // Set list of subscribers
   this.topicSubs = [];
@@ -23,7 +23,7 @@ function CrossbarAdapter(url, transportOptions) {
   // Create a connection instance
   this.connection = new autobahn.Connection({
     url: url,
-    realm: "webgui",
+    realm: 'webgui',
   });
 
   this.connection.onopen = this.handleConnect_.bind(this);
@@ -53,22 +53,22 @@ CrossbarAdapter.prototype.handleClose_ = function (reason, details) {
 };
 
 CrossbarAdapter.prototype.send = async function (data) {
-  var message = JSON.parse(typeof data === "string" ? data : data.data);
+  var message = JSON.parse(typeof data === 'string' ? data : data.data);
   var topicName = crossbarTopicName(message.topic);
   // If the command message is subscribe
-  if (message.op === "subscribe") {
+  if (message.op === 'subscribe') {
     // create a Crossbar subscription to the destination
-    var sub = await this.crossbarClient_.subscribe(
+    var subId = await this.crossbarClient_.subscribe(
       topicName,
       function (message) {
         // Call the onmessage method of the SocketAdapter class
         this.onmessage(message[0]);
       }.bind(this)
     );
-    this.topicSubs.push(sub);
+    this.topicSubs.push(subId);
   }
   // If the command message was unsubscribe, delete the listener to the topic
-  if (message.op === "unsubscribe") {
+  if (message.op === 'unsubscribe') {
     for (var sub of this.topicSubs) {
       if (sub.topic === topicName) {
         sub.unsubscribe();
@@ -78,7 +78,7 @@ CrossbarAdapter.prototype.send = async function (data) {
   }
   // For published data, switch to the topic name in the message
   var destination = this.clientCommandDestination;
-  if (message.op === "publish") {
+  if (message.op === 'publish') {
     destination = topicName;
   }
   // Finally, send the message

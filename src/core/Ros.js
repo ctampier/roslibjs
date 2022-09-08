@@ -7,6 +7,7 @@ var WebSocket = require('ws');
 var WorkerSocket = require('../util/workerSocket');
 var socketAdapter = require('./SocketAdapter');
 var StompWsAdapter = require('../util/stompWsAdapter');
+var MqttWsAdapter = require('../util/mqttWsAdapter');
 var CrossbarAdapter = require('../util/crossbarAdapter');
 
 var Service = require('./Service');
@@ -86,6 +87,8 @@ Ros.prototype.connect = function(url) {
     this.socket = assign(new StompWsAdapter(url, this.transportOptions), socketAdapter(this));
     this.socket.stompClient_.onWebSocketClose = this.socket.onclose;
     this.socket.stompClient_.onWebSocketError = this.socket.onerror;
+  } else if (this.transportLibrary === 'paho.mqtt') {
+    this.socket = assign(new MqttWsAdapter(url, this.transportOptions), socketAdapter(this));
   } else if (this.transportLibrary === 'crossbar') {
     this.socket = assign(new CrossbarAdapter(url, this.transportOptions), socketAdapter(this));
   } else {
